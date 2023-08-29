@@ -155,11 +155,11 @@ class Zombie():
 
     def update(self, map, playersPos = None, bullets = None):
         if bullets == None: bullets = []
+        min = 605
+        move = 0
         if (self.X % TX < TSIZE - ZSIZE) and (self.Y % TY < TSIZE - ZSIZE):
             startX = self.X // TX
             startY = self.Y // TY
-            min = 605
-            move = 0
             for player in playersPos:
                 for i in range(4):
                     startX += gridX[i]
