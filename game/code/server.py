@@ -53,14 +53,18 @@ class GameServer(Server):
                 playersPos.append((p.X, p.Y))
 
             for zombie in self.zombies:
-                zombie.update(MAP, playersPos, None)
+                zombie.update(playersPos)
                 
 
             players = []
             for u, p in self.players.items():
                 players.append([p.X, p.Y, p.angle, p.health, u])
 
-            self.broadcast({'players':players})
+            zombies = []
+            for z in self.zombies:
+                zombies.append([z.X, z.Y, z.angle])
+
+            self.broadcast({'players':players, 'zombies':zombies})
 
             self.clock.tick(FPS)
 
