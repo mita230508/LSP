@@ -63,6 +63,8 @@ class GameClient(Client):
 
             for p in self.players:
                 self.screen.blit(self.images[0], (p[0], p[1]))
+            for z in self.zombies:
+                self.screen.blit(self.images[2], (z[0], z[1]))
 
         self.display.blit(pg.transform.scale2x(self.screen), (0, 0))
         pg.display.flip()
@@ -113,6 +115,8 @@ class GameClient(Client):
                 if self.username:
                     if 'players' in eventDict.keys():
                         self.players = eventDict['players']
+                    if 'zombies' in eventDict.keys():
+                        self.zombies = eventDict['zombies']
 
                 self.eventList.remove(eventDict)
 
