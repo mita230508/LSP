@@ -24,10 +24,10 @@ class Player():
     
     def zombieCol(self, zombies):
         for zombie in zombies:
-            print((self.X <= zombie[0]+ZSIZE and self.X >= zombie[0]) or (self.X+PSIZE >= zombie[0] and self.X+PSIZE <= zombie[0]+ZSIZE)) and ((self.Y <= zombie[1]+ZSIZE and self.Y >= zombie[1]) or (self.Y+PSIZE >= zombie[1] and self.Y+PSIZE<=zombie[1]+ZSIZE))
+            #print((self.X <= zombie[0]+ZSIZE and self.X >= zombie[0]) or (self.X+PSIZE >= zombie[0] and self.X+PSIZE <= zombie[0]+ZSIZE)) and ((self.Y <= zombie[1]+ZSIZE and self.Y >= zombie[1]) or (self.Y+PSIZE >= zombie[1] and self.Y+PSIZE<=zombie[1]+ZSIZE))
             if ((self.X <= zombie[0]+ZSIZE and self.X >= zombie[0]) or (self.X+PSIZE >= zombie[0] and self.X+PSIZE <= zombie[0]+ZSIZE)) and ((self.Y <= zombie[1]+ZSIZE and self.Y >= zombie[1]) or (self.Y+PSIZE >= zombie[1] and self.Y+PSIZE<=zombie[1]+ZSIZE)):
                 self.health -= 1
-                print('s')
+                #print('s')
             
     def wallCol(self, walls, d):
         if d == 'h':
