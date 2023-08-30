@@ -16,6 +16,7 @@ class Player():
     def __init__(self, X, Y):
         self.X = X
         self.Y = Y
+        self.death = False
         self.angle = 0
         self.health = 10
         self.vector = pg.Vector2()
@@ -23,15 +24,11 @@ class Player():
     
     def zombieCol(self, zombies):
         for zombie in zombies:
-            if zombie[0] + ZSIZE > self.X and self.X >= zombie[0]:
-                self.health -= zombie[2]
-            elif zombie[0] < self.X + TSIZE and self.X <= zombie[0]:
-                self.health -= zombie[2]
-            elif zombie[1] + ZSIZE < self.Y + TSIZE and zombie[1] + ZSIZE > self.Y:
-                self.health -= zombie[2]
-            elif zombie[1] < self.Y + TSIZE and zombie[1] > self.Y:
-                self.health -= zombie[2]
-
+            print((self.X <= zombie[0]+ZSIZE and self.X >= zombie[0]) or (self.X+PSIZE >= zombie[0] and self.X+PSIZE <= zombie[0]+ZSIZE)) and ((self.Y <= zombie[1]+ZSIZE and self.Y >= zombie[1]) or (self.Y+PSIZE >= zombie[1] and self.Y+PSIZE<=zombie[1]+ZSIZE))
+            if ((self.X <= zombie[0]+ZSIZE and self.X >= zombie[0]) or (self.X+PSIZE >= zombie[0] and self.X+PSIZE <= zombie[0]+ZSIZE)) and ((self.Y <= zombie[1]+ZSIZE and self.Y >= zombie[1]) or (self.Y+PSIZE >= zombie[1] and self.Y+PSIZE<=zombie[1]+ZSIZE)):
+                self.health -= 1
+                print('s')
+            
     def wallCol(self, walls, d):
         if d == 'h':
             for wall in walls:
@@ -102,8 +99,11 @@ class Player():
             self.angle = math.atan2(mPos[1] - self.Y, mPos[0] - self.X)
         self.updVel(moves, walls)
         self.borderCheck()
-        if zombies:
-            self.zombieCol(zombies)
+        self.zombieCol(zombies)
+        if self.health == 0:
+            self.death = True
+        #print(self.health)
+        
 
 class Zombie():
     def __init__(self, X, Y, types, map):
@@ -179,7 +179,6 @@ class Zombie():
                     pos[1] -= gridY[i]
 
         x = end
-        print(start)
         while path[tuple(x)] != list(start):
             x = path[tuple(x)] 
         return x
@@ -198,15 +197,16 @@ class Zombie():
 
 
             pos = self.bfs((self.X // TSIZE, self.Y // TSIZE), dist[min(dist)])
-            print(pos)
             for i in range(4):
-                if pos[0] - gridX[i] != self.X // TSIZE or pos[1] - gridY[i] != self.Y // TSIZE:
+                if pos[0] == (self.X // TSIZE) + gridX[i] and pos[1] == self.Y // TSIZE + gridY[i]:
                     self.move = i
 
 
         if self.move != -1:
             self.X += gridX[self.move] * self.Vel
+            self.X = max(0, self.X)
             self.Y += gridY[self.move] * self.Vel
+            self.Y = max(0, self.Y)
         if self.move == 0:
             self.angle = 0
         elif self.move == 1:
