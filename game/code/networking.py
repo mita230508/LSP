@@ -91,7 +91,7 @@ class Server:
                 return 0
             x = list(x.items())[0][1]
             if x not in self.players:
-                self.players[x] = Player(random.randint(0, WIDTH//2-TSIZE), random.randint(0, HEIGHT/2-TSIZE))
+                self.players[x] = Player(3 * 16 + 1, 15 * 16 + 1)
                 username = x
                 send(conn, {'username':x})
                 break
