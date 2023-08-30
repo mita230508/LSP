@@ -1,6 +1,7 @@
 import pygame as pg
 import math
 from queue import PriorityQueue
+from collections import deque
 
 WIDTH,  HEIGHT = 480, 320
 TSIZE = 16
@@ -115,26 +116,25 @@ class Zombie():
         self.timer = 0
         self.Strength = types[2]
         self.angle = 0
+        self.move = -1
     
-    def playerCol(self, players):
-        for username, p in players.items():
-            if players[username]:
-                if ((self.X <= p[0]+TSIZE and self.X >= p[0]) or (self.X+PSIZE >= p[0] and self.X+PSIZE <= p[0]+TSIZE)) and ((self.Y <= p[1]+TSIZE and self.Y >= p[1]) or (self.Y+PSIZE >= p[1] and self.Y+PSIZE<=p[1]+TSIZE)):
-                    players[username].heatlh -= 1
 
     def bulletCol(self, bullets):
         for b in bullets:
             if ((self.X <= b[0]+TSIZE and self.X >= b[0]) or (self.X+PSIZE >= b[0] and self.X+PSIZE <= b[0]+TSIZE)) and ((self.Y <= b[1]+TSIZE and self.Y >= b[1]) or (self.Y+PSIZE >= b[1] and self.Y+PSIZE<=b[1]+TSIZE)):
                 self.health -= 1
 
-    def findPath(self, start, end, min):
+    def nestorandom(self, start, end, min):
+        #print(end)
         q = PriorityQueue(605)
         visited = [0 for i in range(605)]
-        DifX = abs(end[0] - start[0])
-        DifY = abs(end[1] - start[1])
-        q._put((DifX + DifY, DifX + DifY, 0, start[0] + TX * start[1]))
+        DifX = end[0] - start[0]
+        DifY = end[1] - start[1]
+        q.put((DifX + DifY, DifX + DifY, 0, start[0] + TX * start[1]))
         while not q.empty():
-            path, to, until, tile = q._get()
+            path, to, until, tile = q.get()
+            #print(path)
+            #print (tile)
             if to == 0:
                 if min > until:
                     min = until
@@ -145,43 +145,78 @@ class Zombie():
             for i in range(4):
                 tileX += gridX[i]
                 tileY += gridY[i]
+                #print(tileX, tileY, visited[tileX + tileY * TX], self.map[tileX + tileY * TX] == 10)
+                #print(tileX, tileY)
                 if tileX >= 0 and tileX < TX and tileY >= 0 and tileY < TY and not visited[tileX + tileY * TX] and self.map[tileX + tileY * TX] == 10:
-                    DifX = abs(end[0] - tileX)
-                    DifY = abs(end[1] - tileY)
-                    q._put((DifX + DifY + until + 1, DifX + DifY, until + 1, tileX + tileY * TX))
+                    DifX = end[0] - tileX
+                    DifY = end[1] - tileY
+                    q.put((DifX + DifY + until + 1, DifX + DifY, until + 1, tileX + tileY * TX))
                 tileX -= gridX[i]
                 tileY -= gridY[i]
         return min
 
+    def bfs(self, start, end):
+        q = deque()
+        visited = [0 for i in range(600)]
+        path = {}
+        q.append(list(start))
+        visited[start[0] + start[1] * TX]
+        while len(q)>0:
+            pos = q.popleft()
+            for i in range(4):
+                pos[0] += gridX[i]
+                pos[1] += gridY[i]
+
+                if pos[0] < TX and pos[0] >= 0 and pos[1] < TY and pos[1] >= 0 and not visited[pos[0]+TX*pos[1]] and self.map[pos[0]+TX*pos[1]] == 10:
+                    visited[pos[0]+TX*pos[1]] = 1
+                    q.append(list(pos))
+                    pos1 = pos.copy()
+                    pos[0] -= gridX[i]
+                    pos[1] -= gridY[i]
+                    path[tuple(pos1)] = pos
+                else:
+                    pos[0] -= gridX[i]
+                    pos[1] -= gridY[i]
+
+        x = end
+        print(start)
+        while path[tuple(x)] != list(start):
+            x = path[tuple(x)] 
+        return x
+
+
     def update(self, players = None, bullets = None):
+        #print("zombie", self.X, self.Y)
         if bullets == None: bullets = []
-        min = 605
-        move = 0
-        if (self.X % TX < TSIZE - ZSIZE) and (self.Y % TY < TSIZE - ZSIZE):
-            startX = self.X // TX
-            startY = self.Y // TY
+        if players == None: players = []
+        #print(self.X // TSIZE, self.Y // TSIZE, (self.X + ZSIZE) // TSIZE, (self.Y + ZSIZE) // TSIZE)
+        if (self.X // TSIZE == (self.X + ZSIZE) // TSIZE) and (self.Y // TSIZE == (self.Y + ZSIZE) // TSIZE):
+            dist = {}
             for player in players:
-                for i in range(4):
-                    startX += gridX[i]
-                    startY += gridY[i]
-                    if startX < TX and startX >= 0 and startY < TY and startY >= 0 and self.map[startX + startY * TX]:
-                        a = self.findPath((startX, startY), (player[0] % TX, player[1] % TY), map, min)
-                        if a < min:
-                            move = i
-                            min = a
-                    startX -= gridX[i]
-                    startY -= gridY[i]
-        self.X += gridX[move] * self.Vel
-        self.Y += gridY[move] * self.Vel
-        if (move == 0):
+                d = math.sqrt((player[0] // TSIZE -self.X // TSIZE)**2+(player[1] // TSIZE-self.Y // TSIZE)**2)
+                dist[d] = (player[0] // TSIZE, player[1] // TSIZE)
+
+
+            pos = self.bfs((self.X // TSIZE, self.Y // TSIZE), dist[min(dist)])
+            print(pos)
+            for i in range(4):
+                if pos[0] - gridX[i] != self.X // TSIZE or pos[1] - gridY[i] != self.Y // TSIZE:
+                    self.move = i
+
+
+        if self.move != -1:
+            self.X += gridX[self.move] * self.Vel
+            self.Y += gridY[self.move] * self.Vel
+        if self.move == 0:
             self.angle = 0
-        elif (move == 1):
+        elif self.move == 1:
             self.angle = math.pi / 2
-        elif move == 2:
+        elif self.move == 2:
             self.angle = math.pi
         else:
             self.angle = 3 * math.pi / 2
         self.bulletCol(bullets)
+
 
 class Wall():
     def __init__(self, X, Y):
