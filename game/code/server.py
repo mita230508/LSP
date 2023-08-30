@@ -13,7 +13,7 @@ class GameServer(Server):
         self.dt = 1
         
         self.walls = []
-        self.zombies = [Zombie(100, 100, (1, 1, 1), MAP)]
+        self.zombies = [Zombie(16 * 10 + 1, 16 * 10 + 1, (1, 1, 1), MAP)]
 
         for i, v in enumerate(MAP):
             if v == 11:
@@ -23,7 +23,6 @@ class GameServer(Server):
 
 
         while True:
-
             #if len(self.players) >= 2 and self.state == 'waiting':
             #    self.state = 'starting'
             #elif self.state == 'starting':
@@ -41,10 +40,10 @@ class GameServer(Server):
                 for username, playerInput in eventDict.items():
                     if 'move' in playerInput.keys():
                         if username in self.players.keys():
-                            self.players[username].update(moves=playerInput['move'], walls=self.walls)
+                            self.players[username].update(moves=playerInput['move'], walls=self.walls, zombies = zombies)
                     if 'mouseP' in playerInput.keys():
                         if username in self.players.keys():
-                            self.players[username].update(mPos=playerInput['mouseP'], walls=self.walls)
+                            self.players[username].update(mPos=playerInput['mouseP'], walls=self.walls, zombies = zombies)
                 self.eventList.remove(eventDict)
 
             
@@ -52,17 +51,19 @@ class GameServer(Server):
             for p in list(self.players.values()).copy():
                 playersPos.append((p.X, p.Y))
 
-            for zombie in self.zombies:
-                zombie.update(playersPos)
+            if len(self.players)>0:
+                for zombie in self.zombies:
+                    zombie.update(playersPos)
                 
+            zombies = []
+            for z in self.zombies:
+                zombies.append([z.X, z.Y, z.angle])
 
             players = []
             for u, p in self.players.items():
                 players.append([p.X, p.Y, p.angle, p.health, u])
 
-            zombies = []
-            for z in self.zombies:
-                zombies.append([z.X, z.Y, z.angle])
+            
 
             self.broadcast({'players':players, 'zombies':zombies})
 
